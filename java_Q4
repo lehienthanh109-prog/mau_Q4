@@ -1,0 +1,525 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * StringExamCases.java
+ * Cac bien the co the gap trong de dang IString / MyString:
+ *   f1(String): tra ve mot SO (chu so nhieu nhat, tong, dem, so lon nhat ...)
+ *   f2(String): tra ve mot CHUOI (dao nhom chu so, sap xep, xoa, nen chuoi ...)
+ * File doc lap, khong phu thuoc cac file khac.
+ * Bien dich: javac -encoding UTF-8 StringExamCases.java
+ * Chay:      java StringExamCases
+ */
+
+// Giong de thi: interface duoc cho san, chi viet class implements
+interface IString {
+    int f1(String str);
+    String f2(String str);
+}
+
+public class StringExamCases {
+
+    // ====================================================================
+    // A. DANG f1: TRA VE SO (thong ke chu so / so trong chuoi)
+    // ====================================================================
+
+    // Mang dem so lan xuat hien cua tung chu so 0..9
+    public static int[] digitCounts(String s) {
+        int[] c = new int[10];
+        if (s == null) return c;
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            if (ch >= '0' && ch <= '9') c[ch - '0']++;
+        }
+        return c;
+    }
+
+    // A1. Chu so xuat hien NHIEU nhat, bang nhau lay chu so LON nhat, khong co -> -1 (dung de goc)
+    public static int mostFrequentDigitTieLargest(String s) {
+        int[] c = digitCounts(s);
+        int best = -1, max = 0;
+        for (int d = 0; d <= 9; d++) {
+            if (c[d] > 0 && c[d] >= max) { max = c[d]; best = d; }   // >= : lon hon thang
+        }
+        return best;
+    }
+
+    // A2. Nhieu nhat, bang nhau lay chu so NHO nhat
+    public static int mostFrequentDigitTieSmallest(String s) {
+        int[] c = digitCounts(s);
+        int best = -1, max = 0;
+        for (int d = 0; d <= 9; d++) {
+            if (c[d] > 0 && c[d] > max) { max = c[d]; best = d; }    // > : nho hon giu lai
+        }
+        return best;
+    }
+
+    // A3. Chu so xuat hien IT nhat (trong cac chu so co mat), bang nhau lay LON nhat
+    public static int leastFrequentDigitTieLargest(String s) {
+        int[] c = digitCounts(s);
+        int best = -1, min = Integer.MAX_VALUE;
+        for (int d = 0; d <= 9; d++) {
+            if (c[d] > 0 && c[d] <= min) { min = c[d]; best = d; }
+        }
+        return best;
+    }
+
+    // A4. Chu so xuat hien IT nhat, bang nhau lay NHO nhat
+    public static int leastFrequentDigitTieSmallest(String s) {
+        int[] c = digitCounts(s);
+        int best = -1, min = Integer.MAX_VALUE;
+        for (int d = 0; d <= 9; d++) {
+            if (c[d] > 0 && c[d] < min) { min = c[d]; best = d; }
+        }
+        return best;
+    }
+
+    // A5. Chu so lon nhat / nho nhat trong chuoi, khong co -> -1
+    public static int largestDigit(String s) {
+        int[] c = digitCounts(s);
+        for (int d = 9; d >= 0; d--) if (c[d] > 0) return d;
+        return -1;
+    }
+
+    public static int smallestDigit(String s) {
+        int[] c = digitCounts(s);
+        for (int d = 0; d <= 9; d++) if (c[d] > 0) return d;
+        return -1;
+    }
+
+    // A6. Dem tong so chu so; tong cac chu so; so chu so khac nhau; dem chan / le
+    public static int countDigits(String s) {
+        int sum = 0;
+        for (int x : digitCounts(s)) sum += x;
+        return sum;
+    }
+
+    public static int sumDigits(String s) {
+        int[] c = digitCounts(s);
+        int sum = 0;
+        for (int d = 0; d <= 9; d++) sum += d * c[d];
+        return sum;
+    }
+
+    public static int countDistinctDigits(String s) {
+        int n = 0;
+        for (int x : digitCounts(s)) if (x > 0) n++;
+        return n;
+    }
+
+    public static int countEvenDigits(String s) {
+        int[] c = digitCounts(s);
+        return c[0] + c[2] + c[4] + c[6] + c[8];
+    }
+
+    public static int countOddDigits(String s) {
+        int[] c = digitCounts(s);
+        return c[1] + c[3] + c[5] + c[7] + c[9];
+    }
+
+    // A7. Cac nhom chu so lien tiep: "abc123def45!67" -> [123, 45, 67]
+    public static List<String> digitGroups(String s) {
+        List<String> groups = new ArrayList<String>();
+        if (s == null) return groups;
+        StringBuilder cur = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            if (Character.isDigit(ch)) {
+                cur.append(ch);
+            } else if (cur.length() > 0) {
+                groups.add(cur.toString());
+                cur.setLength(0);
+            }
+        }
+        if (cur.length() > 0) groups.add(cur.toString());   // nhom o cuoi chuoi
+        return groups;
+    }
+
+    // A8. So nhom chu so, do dai nhom dai nhat
+    public static int countDigitGroups(String s) {
+        return digitGroups(s).size();
+    }
+
+    public static int longestDigitGroupLength(String s) {
+        int max = 0;
+        for (String g : digitGroups(s)) if (g.length() > max) max = g.length();
+        return max;
+    }
+
+    // A9. Tong cac SO trong chuoi: "abc123def45" -> 168 (luu y: khac sumDigits)
+    // Luu y: nhom qua dai (>18 chu so) se tran long -> dung BigInteger neu de yeu cau
+    public static long sumOfNumbers(String s) {
+        long sum = 0;
+        for (String g : digitGroups(s)) sum += Long.parseLong(g);
+        return sum;
+    }
+
+    // A10. So lon nhat / nho nhat trong chuoi, khong co so nao -> -1
+    public static long largestNumber(String s) {
+        long best = -1;
+        for (String g : digitGroups(s)) {
+            long v = Long.parseLong(g);
+            if (v > best) best = v;
+        }
+        return best;
+    }
+
+    public static long smallestNumber(String s) {
+        long best = -1;
+        boolean first = true;
+        for (String g : digitGroups(s)) {
+            long v = Long.parseLong(g);
+            if (first || v < best) { best = v; first = false; }
+        }
+        return best;
+    }
+
+    // A11. Ky tu (bat ky) xuat hien nhieu nhat; bang nhau lay ky tu NHO nhat theo ma ky tu
+    // Khong co ky tu (chuoi rong) -> tra ve '\0'
+    public static char mostFrequentChar(String s) {
+        if (s == null || s.isEmpty()) return '\0';
+        int[] c = new int[65536];
+        for (int i = 0; i < s.length(); i++) c[s.charAt(i)]++;
+        int best = 0;
+        for (int i = 1; i < c.length; i++) if (c[i] > c[best]) best = i;
+        return (char) best;
+    }
+
+    // A12. Chu cai xuat hien nhieu nhat, KHONG phan biet hoa thuong, bang nhau lay chu cai nho nhat
+    // Khong co chu cai -> tra ve chuoi rong
+    public static String mostFrequentLetter(String s) {
+        if (s == null) return "";
+        int[] c = new int[26];
+        for (char ch : s.toLowerCase().toCharArray()) {
+            if (ch >= 'a' && ch <= 'z') c[ch - 'a']++;
+        }
+        int best = -1;
+        for (int i = 0; i < 26; i++) {
+            if (c[i] > 0 && (best == -1 || c[i] > c[best])) best = i;
+        }
+        return best == -1 ? "" : String.valueOf((char) ('a' + best));
+    }
+
+    // ====================================================================
+    // B. DANG f2: TRA VE CHUOI (bien doi theo nhom ky tu)
+    // ====================================================================
+
+    // B1. Dao nguoc tung nhom chu so lien tiep, ky tu khac giu nguyen (dung de goc)
+    public static String reverseDigitGroups(String s) {
+        return reverseGroups(s, true);
+    }
+
+    // B2. Dao nguoc tung nhom CHU CAI lien tiep, chu so va ky hieu giu nguyen
+    //     "abc123def" -> "cba123fed"
+    public static String reverseLetterGroups(String s) {
+        return reverseGroups(s, false);
+    }
+
+    // digitMode = true: nhom la chu so; false: nhom la chu cai
+    private static String reverseGroups(String s, boolean digitMode) {
+        if (s == null) return null;
+        StringBuilder result = new StringBuilder();
+        StringBuilder group = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            boolean inGroup = digitMode ? Character.isDigit(c) : Character.isLetter(c);
+            if (inGroup) {
+                group.append(c);
+            } else {
+                result.append(group.reverse());
+                group.setLength(0);
+                result.append(c);
+            }
+        }
+        result.append(group.reverse());   // nhom o cuoi chuoi
+        return result.toString();
+    }
+
+    // B3. Dao nguoc tung tu (tach theo khoang trang): "lan anh" -> "nal hna"
+    public static String reverseEachWord(String s) {
+        if (s == null || s.trim().isEmpty()) return s;
+        String[] w = s.trim().split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < w.length; i++) {
+            sb.append(new StringBuilder(w[i]).reverse());
+            if (i < w.length - 1) sb.append(" ");
+        }
+        return sb.toString();
+    }
+
+    // B4. Dao thu tu cac tu: "lan anh" -> "anh lan"
+    public static String reverseWordOrder(String s) {
+        if (s == null || s.trim().isEmpty()) return s;
+        String[] w = s.trim().split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (int i = w.length - 1; i >= 0; i--) {
+            sb.append(w[i]);
+            if (i > 0) sb.append(" ");
+        }
+        return sb.toString();
+    }
+
+    // B5. Sap xep tang dan chu so TRONG TUNG NHOM: "abc321def54" -> "abc123def45"
+    public static String sortDigitsInEachGroup(String s) {
+        if (s == null) return null;
+        StringBuilder result = new StringBuilder();
+        StringBuilder group = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isDigit(c)) {
+                group.append(c);
+            } else {
+                result.append(sortedChars(group.toString()));
+                group.setLength(0);
+                result.append(c);
+            }
+        }
+        result.append(sortedChars(group.toString()));
+        return result.toString();
+    }
+
+    private static String sortedChars(String g) {
+        char[] arr = g.toCharArray();
+        Arrays.sort(arr);
+        return new String(arr);
+    }
+
+    // B6. Dao nguoc TOAN BO chu so trong chuoi, ky tu khac giu nguyen vi tri
+    //     "a12b34" -> "a43b21"  (khac B1: dao tren toan chuoi, khong theo nhom)
+    public static String reverseAllDigitsKeepPositions(String s) {
+        if (s == null) return null;
+        StringBuilder digits = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            if (Character.isDigit(s.charAt(i))) digits.append(s.charAt(i));
+        }
+        digits.reverse();
+        StringBuilder result = new StringBuilder();
+        int k = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isDigit(c)) result.append(digits.charAt(k++));
+            else result.append(c);
+        }
+        return result.toString();
+    }
+
+    // B7. Sap xep tang dan TOAN BO chu so, giu nguyen vi tri ky tu khac: "a3b1c2" -> "a1b2c3"
+    public static String sortAllDigitsKeepPositions(String s) {
+        if (s == null) return null;
+        StringBuilder digits = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            if (Character.isDigit(s.charAt(i))) digits.append(s.charAt(i));
+        }
+        String sorted = sortedChars(digits.toString());
+        StringBuilder result = new StringBuilder();
+        int k = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isDigit(c)) result.append(sorted.charAt(k++));
+            else result.append(c);
+        }
+        return result.toString();
+    }
+
+    // B8. Xoa chu so / chi giu chu so / thay chu so bang '*'
+    public static String removeDigits(String s) {
+        return s == null ? null : s.replaceAll("[0-9]", "");
+    }
+
+    public static String keepOnlyDigits(String s) {
+        return s == null ? null : s.replaceAll("[^0-9]", "");
+    }
+
+    public static String maskDigits(String s) {
+        return s == null ? null : s.replaceAll("[0-9]", "*");
+    }
+
+    // B9. Tang moi chu so them 1 (9 thanh 0): "a19b" -> "a20b"
+    public static String incrementEachDigit(String s) {
+        if (s == null) return null;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isDigit(c)) sb.append((char) ('0' + (c - '0' + 1) % 10));
+            else sb.append(c);
+        }
+        return sb.toString();
+    }
+
+    // B10. Lay cac so trong chuoi, noi bang dau cach: "abc123def45!67" -> "123 45 67"
+    public static String extractNumbers(String s) {
+        return String.join(" ", digitGroups(s));
+    }
+
+    // B11. Thay moi nhom chu so bang tong cac chu so cua nhom: "abc123def45" -> "abc6def9"
+    public static String replaceGroupWithDigitSum(String s) {
+        if (s == null) return null;
+        StringBuilder result = new StringBuilder();
+        int sum = 0;
+        boolean inGroup = false;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isDigit(c)) {
+                sum += c - '0';
+                inGroup = true;
+            } else {
+                if (inGroup) { result.append(sum); sum = 0; inGroup = false; }
+                result.append(c);
+            }
+        }
+        if (inGroup) result.append(sum);
+        return result.toString();
+    }
+
+    // B12. Doi chu so ve cuoi / ve dau, giu thu tu tuong doi: "a1b2" -> "ab12" / "12ab"
+    public static String moveDigitsToEnd(String s) {
+        if (s == null) return null;
+        StringBuilder others = new StringBuilder(), digits = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isDigit(c)) digits.append(c);
+            else others.append(c);
+        }
+        return others.toString() + digits.toString();
+    }
+
+    public static String moveDigitsToFront(String s) {
+        if (s == null) return null;
+        StringBuilder others = new StringBuilder(), digits = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isDigit(c)) digits.append(c);
+            else others.append(c);
+        }
+        return digits.toString() + others.toString();
+    }
+
+    // B13. Xoa ky tu giong nhau LIEN TIEP: "aabbbcaa" -> "abca"
+    public static String removeConsecutiveDuplicates(String s) {
+        if (s == null || s.isEmpty()) return s;
+        StringBuilder sb = new StringBuilder();
+        sb.append(s.charAt(0));
+        for (int i = 1; i < s.length(); i++) {
+            if (s.charAt(i) != s.charAt(i - 1)) sb.append(s.charAt(i));
+        }
+        return sb.toString();
+    }
+
+    // B14. Nen chuoi: "aaabcc" -> "a3b1c2"   (chu y: ky tu le van ghi so 1)
+    public static String compress(String s) {
+        if (s == null || s.isEmpty()) return s;
+        StringBuilder sb = new StringBuilder();
+        int count = 1;
+        for (int i = 1; i <= s.length(); i++) {
+            if (i < s.length() && s.charAt(i) == s.charAt(i - 1)) {
+                count++;
+            } else {
+                sb.append(s.charAt(i - 1)).append(count);
+                count = 1;
+            }
+        }
+        return sb.toString();
+    }
+
+    // B15. Doi hoa <-> thuong: "Lan Anh1" -> "lAN aNH1"
+    public static String swapCase(String s) {
+        if (s == null) return null;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isUpperCase(c)) sb.append(Character.toLowerCase(c));
+            else if (Character.isLowerCase(c)) sb.append(Character.toUpperCase(c));
+            else sb.append(c);
+        }
+        return sb.toString();
+    }
+
+    // ====================================================================
+    // C. MAU CLASS GIONG DE THI: MyString implements IString
+    //    Doi noi dung f1/f2 theo bien the de yeu cau
+    // ====================================================================
+
+    static class MyString implements IString {
+        @Override
+        public int f1(String str) {
+            return mostFrequentDigitTieLargest(str);
+        }
+
+        @Override
+        public String f2(String str) {
+            return reverseDigitGroups(str);
+        }
+    }
+
+    // ====================================================================
+    // MAIN: CHAY THU
+    // ====================================================================
+
+    public static void main(String[] args) {
+        String t1 = "a1b2c1d1e2";
+        String t2 = "abc123def45!67";
+
+        System.out.println("===== A. DANG f1 (tra ve so) =====");
+        System.out.println("mostFrequentDigitTieLargest(\"" + t1 + "\")  = " + mostFrequentDigitTieLargest(t1));
+        System.out.println("mostFrequentDigitTieLargest(\"1122\")        = " + mostFrequentDigitTieLargest("1122") + "  (hoa -> lay lon)");
+        System.out.println("mostFrequentDigitTieSmallest(\"1122\")       = " + mostFrequentDigitTieSmallest("1122") + "  (hoa -> lay nho)");
+        System.out.println("leastFrequentDigitTieLargest(\"" + t1 + "\") = " + leastFrequentDigitTieLargest(t1));
+        System.out.println("leastFrequentDigitTieSmallest(\"1122\")      = " + leastFrequentDigitTieSmallest("1122"));
+        System.out.println("largestDigit(\"" + t2 + "\")   = " + largestDigit(t2));
+        System.out.println("smallestDigit(\"" + t2 + "\")  = " + smallestDigit(t2));
+        System.out.println("countDigits(\"" + t2 + "\")    = " + countDigits(t2));
+        System.out.println("sumDigits(\"" + t2 + "\")      = " + sumDigits(t2));
+        System.out.println("countDistinctDigits(\"" + t2 + "\") = " + countDistinctDigits(t2));
+        System.out.println("countEvenDigits / countOddDigits = " + countEvenDigits(t2) + " / " + countOddDigits(t2));
+        System.out.println("digitGroups(\"" + t2 + "\")    = " + digitGroups(t2));
+        System.out.println("countDigitGroups                = " + countDigitGroups(t2));
+        System.out.println("longestDigitGroupLength         = " + longestDigitGroupLength(t2));
+        System.out.println("sumOfNumbers(\"" + t2 + "\")   = " + sumOfNumbers(t2) + "  (123+45+67)");
+        System.out.println("largestNumber / smallestNumber  = " + largestNumber(t2) + " / " + smallestNumber(t2));
+        System.out.println("mostFrequentChar(\"banana\")      = " + mostFrequentChar("banana"));
+        System.out.println("mostFrequentLetter(\"Hello World\") = " + mostFrequentLetter("Hello World"));
+
+        System.out.println("\n===== B. DANG f2 (tra ve chuoi) =====");
+        System.out.println("reverseDigitGroups(\"" + t2 + "\")        = " + reverseDigitGroups(t2));
+        System.out.println("reverseLetterGroups(\"" + t2 + "\")       = " + reverseLetterGroups(t2));
+        System.out.println("reverseEachWord(\"lan anh\")              = " + reverseEachWord("lan anh"));
+        System.out.println("reverseWordOrder(\"lan anh\")             = " + reverseWordOrder("lan anh"));
+        System.out.println("sortDigitsInEachGroup(\"abc321def54\")    = " + sortDigitsInEachGroup("abc321def54"));
+        System.out.println("reverseAllDigitsKeepPositions(\"a12b34\") = " + reverseAllDigitsKeepPositions("a12b34"));
+        System.out.println("sortAllDigitsKeepPositions(\"a3b1c2\")    = " + sortAllDigitsKeepPositions("a3b1c2"));
+        System.out.println("removeDigits(\"" + t2 + "\")               = " + removeDigits(t2));
+        System.out.println("keepOnlyDigits(\"" + t2 + "\")            = " + keepOnlyDigits(t2));
+        System.out.println("maskDigits(\"" + t2 + "\")                = " + maskDigits(t2));
+        System.out.println("incrementEachDigit(\"a19b\")              = " + incrementEachDigit("a19b"));
+        System.out.println("extractNumbers(\"" + t2 + "\")            = " + extractNumbers(t2));
+        System.out.println("replaceGroupWithDigitSum(\"abc123def45\") = " + replaceGroupWithDigitSum("abc123def45"));
+        System.out.println("moveDigitsToEnd(\"a1b2\")                 = " + moveDigitsToEnd("a1b2"));
+        System.out.println("moveDigitsToFront(\"a1b2\")               = " + moveDigitsToFront("a1b2"));
+        System.out.println("removeConsecutiveDuplicates(\"aabbbcaa\") = " + removeConsecutiveDuplicates("aabbbcaa"));
+        System.out.println("compress(\"aaabcc\")                      = " + compress("aaabcc"));
+        System.out.println("swapCase(\"Lan Anh1\")                    = " + swapCase("Lan Anh1"));
+
+        System.out.println("\n===== C. MAU MyString implements IString =====");
+        IString ms = new MyString();
+        System.out.println("f1(\"" + t1 + "\") = " + ms.f1(t1));
+        System.out.println("f2(\"" + t2 + "\") = " + ms.f2(t2));
+
+        System.out.println("\n===== D. TRUONG HOP BIEN (de hay cai vao test) =====");
+        System.out.println("f1 khong co chu so   : " + mostFrequentDigitTieLargest("abc") + "  (phai la -1)");
+        System.out.println("f1 chuoi rong        : " + mostFrequentDigitTieLargest("") + "  (phai la -1)");
+        System.out.println("f1 null              : " + mostFrequentDigitTieLargest(null) + "  (phai la -1)");
+        System.out.println("f1 toan chu so giong : " + mostFrequentDigitTieLargest("7777"));
+        System.out.println("f2 khong co chu so   : " + reverseDigitGroups("abc"));
+        System.out.println("f2 chuoi rong        : [" + reverseDigitGroups("") + "]");
+        System.out.println("f2 null              : " + reverseDigitGroups(null));
+        System.out.println("f2 nhom o dau chuoi  : " + reverseDigitGroups("12ab"));
+        System.out.println("f2 nhom o cuoi chuoi : " + reverseDigitGroups("ab12"));
+        System.out.println("f2 toan chu so       : " + reverseDigitGroups("12345"));
+        System.out.println("f2 hai nhom sat nhau (cach 1 ky tu): " + reverseDigitGroups("12-34"));
+        System.out.println("f2 nhom 1 chu so     : " + reverseDigitGroups("a1b2"));
+        System.out.println("sumOfNumbers khong co so : " + sumOfNumbers("abc") + "  (phai la 0)");
+        System.out.println("largestNumber khong co so: " + largestNumber("abc") + "  (phai la -1)");
+        System.out.println("compress chuoi 1 ky tu   : " + compress("a"));
+    }
+}
